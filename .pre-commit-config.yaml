@@ -1,0 +1,17 @@
+- repo: https://github.com/psf/black
+  sha: 19.3b0
+  hooks:
+    - id: black
+      language_version: python3
+
+      # We run black w/ --fast here but CI runs it with --safe
+      entry: black --fast --check
+
+      # Anytime the exclude rules below change, we also need to update the
+      # pyproject.toml file to reflect the changes. This is because Black will not
+      # respect this rules when running through pre-commit hook, because the pre-commit
+      # hook passes filenames to black, which causes black to ignore any other
+      # checks/exclusions.
+      #
+      # More info here: https://github.com/psf/black/issues/438
+      exclude: \.git|\.venv([23])?|\.jupyter|migrations|node_modules|django111_postgres|custom_fields_serializers\.py
