@@ -28,17 +28,23 @@ async def get_sensors_datagram_endpoint(host, port):
     )
 
 
+async def protocol_shutdown(protocol):
+    return await protocol.clean_up()
+
+
 def main():
     loop = asyncio.get_event_loop()
     sensors_proto_coro = get_sensors_datagram_endpoint(settings.HOST, settings.PORT)
     transport, _ = loop.run_until_complete(sensors_proto_coro)
     print(f"Sensors UDP server is running on {settings.HOST}:{settings.PORT}.")
+    print(f"Protocol was set to: {transport._protocol.__class__.__name__}")
 
     try:
         loop.run_forever()
     except KeyboardInterrupt:
         pass
     print("\nShutting down server...")
+    loop.run_until_complete(protocol_shutdown(transport._protocol))
     transport.close()
     loop.close()
 
