@@ -45,9 +45,9 @@ class RESTSensorServerProtocol:
         }
         print(f"Received {data} from {addr} with hardware_id={hardware_id}")
 
-        import requests
-
-        requests.post(self.endpoint, data, json=True)
+        import httpx
+        async with httpx.AsyncClient() as client:
+            await client.post(self.endpoint, data, json=True)
 
     def connection_lost(self, exc):
         if exc is None:
