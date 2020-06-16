@@ -6,6 +6,7 @@ class RedisClient:
     """
     A redis client.
     """
+
     url = None
     client = None
 
