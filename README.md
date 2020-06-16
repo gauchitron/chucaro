@@ -11,6 +11,25 @@ This UDP server receives the information sent by our sensors and write them in a
 `pip3 install -r requirements.txt`
 
 
+# Code / Contribute
+
+* Install [pre-commit](https://pre-commit.com/#install):
+  * (If Linux) 
+  ```bash
+  $ [sudo] pip install pre-commit
+  ```
+  * (If OS X) 
+  ```bash
+  $ brew install pre-commit
+  ```
+
+* Install hooks:
+
+  ```bash
+  $ pre-commit install --hook-type pre-push -f
+  ```
+
+
 # Run
 
 Run the server with:

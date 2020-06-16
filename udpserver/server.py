@@ -1,11 +1,10 @@
+from udpserver import protocol, settings
 import asyncio
-from udpserver import settings
-from udpserver import protocol
 
 
-def get_protocol_class():
+def get_protocol_instance():
     """
-    Returns a protocol class.
+    Returns a protocol instance.
     """
     protocol_class = getattr(protocol, settings.PROTOCOL, None)
     if protocol_class is None:
@@ -13,7 +12,7 @@ def get_protocol_class():
             f"Defined protocol in settings {settings.PROTOCOL} was not found."
         )
 
-    return protocol_class
+    return protocol_class()
 
 
 async def get_sensors_datagram_endpoint(host, port):
@@ -25,7 +24,7 @@ async def get_sensors_datagram_endpoint(host, port):
     """
     loop = asyncio.get_event_loop()
     return await loop.create_datagram_endpoint(
-        lambda: get_protocol_class(), local_addr=(host, port)
+        lambda: get_protocol_instance(), local_addr=(host, port)
     )
 
 

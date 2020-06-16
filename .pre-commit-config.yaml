@@ -1,5 +1,5 @@
 - repo: https://github.com/psf/black
-  sha: 19.3b0
+  sha: 19.10b0
   hooks:
     - id: black
       language_version: python3
