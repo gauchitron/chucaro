@@ -1,16 +1,35 @@
-import requests
 from struct import unpack
-import pickle
+from udpserver import settings
 
-import settings
 
-class BolsonServerProtocol:
+class DummySensorProtocol:
     """
-    Bolson Protocol.
+    Dummy Sensor Protocol
+
+    It'll only print received data.
+    """
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def datagram_received(self, data, addr):
+        print(f"From {addr}\nReceived {data}")
+
+    def connection_lost(self, exc):
+        if exc is None:
+            print("Connection closed or aborted by me.")
+
+
+class RedisPublisherSensorProtocol:
+    """
+    Publish sensor data into Redis
     """
 
-    status_ok = b"0"
-    status_error = b"1"
+class RESTSensorServerProtocol:
+    """
+    POST sensor data to a REST API
+    """
+
+    endpoint = settings.API_URL
 
     def connection_made(self, transport):
         self.transport = transport
@@ -23,8 +42,9 @@ class BolsonServerProtocol:
             "moisture": moisture
         }
         print(f"Received {data} from {addr} with hardware_id={hardware_id}")
-        self.transport.sendto(self.status_ok, addr)
-        requests.post(settings.API_URL, data, json=True)
+
+        import requests
+        requests.post(self.endpoint, data, json=True)
 
     def connection_lost(self, exc):
         if exc is None:
