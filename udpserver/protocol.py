@@ -8,6 +8,7 @@ class DummySensorProtocol:
 
     It'll only print received data.
     """
+
     def connection_made(self, transport):
         self.transport = transport
 
@@ -24,6 +25,7 @@ class RedisPublisherSensorProtocol:
     Publish sensor data into Redis
     """
 
+
 class RESTSensorServerProtocol:
     """
     POST sensor data to a REST API
@@ -35,15 +37,16 @@ class RESTSensorServerProtocol:
         self.transport = transport
 
     def datagram_received(self, data, addr):
-        hardware_id, temperature, moisture = unpack('<20shh', data)
+        hardware_id, temperature, moisture = unpack("<20shh", data)
         data = {
             "hardware_id": hardware_id,
             "temperature": temperature,
-            "moisture": moisture
+            "moisture": moisture,
         }
         print(f"Received {data} from {addr} with hardware_id={hardware_id}")
 
         import requests
+
         requests.post(self.endpoint, data, json=True)
 
     def connection_lost(self, exc):

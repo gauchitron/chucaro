@@ -41,8 +41,12 @@ async def main():
     loop = asyncio.get_running_loop()
 
     on_con_lost = loop.create_future()
-    hardware_id, temperature, humidity = str(sys.argv[2]), int(sys.argv[3]), int(sys.argv[4])
-    message = pack('<20shh', bytes(hardware_id.encode("ascii")), temperature, humidity)
+    hardware_id, temperature, humidity = (
+        str(sys.argv[2]),
+        int(sys.argv[3]),
+        int(sys.argv[4]),
+    )
+    message = pack("<20shh", bytes(hardware_id.encode("ascii")), temperature, humidity)
 
     transport, protocol = await loop.create_datagram_endpoint(
         lambda: BolsonClientProtocol(message, on_con_lost),
