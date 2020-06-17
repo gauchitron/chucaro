@@ -24,11 +24,14 @@ class RedisPublisherSensorProtocol:
     """
     Publish sensor data into Redis
     """
+
     redis = None
     on_cleanup = None
 
     def datagram_received(self, data, addr):
-        self.redis.publish_json(settings.REDIS_SENSOR_CHANNEL, dict(data=data.decode("UTF-8"), addr=addr))
+        self.redis.publish_json(
+            settings.REDIS_SENSOR_CHANNEL, dict(data=data.decode("UTF-8"), addr=addr)
+        )
 
     def connection_made(self, transport):
         self.transport = transport
