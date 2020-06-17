@@ -10,24 +10,20 @@ async def get_redis_client():
         pool.close()
         await pool.wait_closed()
 
-    return (pool, close_redis)
+    return pool, close_redis
 
 
-async def get_protocol_instance():
+async def get_protocol_instance(name=settings.PROTOCOL):
     """
-    Returns a protocol instance.
+    Protocol Factory. Returns a protocol instance.
     """
-    protocol_class = getattr(protocol, settings.PROTOCOL, None)
+    protocol_class = getattr(protocol, name, None)
     if protocol_class is None:
-        raise ValueError(
-            f"Defined protocol in settings {settings.PROTOCOL} was not found."
-        )
+        raise ValueError(f"Protocol {name} not found.")
 
-    if settings.PROTOCOL == "RedisPublisherSensorProtocol":
+    if protocol_class is protocol.RedisPublisherSensorProtocol:
         redis, close_redis = await get_redis_client()
-        protocol_instance = protocol_class()
-        protocol_instance.redis = redis
-        protocol_instance.on_cleanup = close_redis
+        protocol_instance = protocol_class(redis_client=redis, on_cleanup=[close_redis])
         return protocol_instance
 
     return protocol_class()
@@ -48,8 +44,14 @@ async def get_sensors_datagram_endpoint(host, port):
     )
 
 
-async def protocol_shutdown(protocol):
-    return await protocol.on_cleanup()
+async def exec_transport_protocol_cleanup(transport):
+    """
+    Execute a list of awaitables, if defined, in `transport._protocol.on_cleanup`.
+    """
+    import pdb
+
+    pdb.set_trace()
+    return await asyncio.gather(*transport._protocol.on_cleanup)
 
 
 def main():
@@ -63,8 +65,9 @@ def main():
         loop.run_forever()
     except KeyboardInterrupt:
         pass
+
     print("\nShutting down server...")
-    loop.run_until_complete(protocol_shutdown(transport._protocol))
+    loop.run_until_complete(exec_transport_protocol_cleanup(transport))
     transport.close()
     loop.close()
 

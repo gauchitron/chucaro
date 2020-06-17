@@ -6,6 +6,9 @@ async def reader(ch):
     while await ch.wait_message():
         msg = await ch.get_json()
         print("Got Message:", msg)
+        from datetime import datetime
+        now = datetime.now().strftime("%H:%M:%S,%f")
+        print("Now:", now)
 
 
 async def main():

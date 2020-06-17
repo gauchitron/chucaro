@@ -1,8 +1,33 @@
 from struct import unpack
+from datetime import datetime
 from udpserver import settings
 
+import httpx
 
-class DummySensorProtocol:
+
+class BaseSensorProtocol:
+    """
+    Base class for sensor protocols.
+    """
+
+    def __init__(self, on_cleanup=None):
+        """
+        on_cleanup:     A list of coroutines to excecute when closing transport.
+        """
+        self.on_cleanup = on_cleanup or []
+
+    def datagram_received(self, data, addr):
+        raise NotImplementedError
+
+    def connection_made(self, transport):
+        self.transport = transport
+
+    def connection_lost(self, exc):
+        if exc is None:
+            print("Connection closed or aborted by me.")
+
+
+class DummySensorProtocol(BaseSensorProtocol):
     """
     Dummy Sensor Protocol
 
@@ -12,44 +37,33 @@ class DummySensorProtocol:
     def datagram_received(self, data, addr):
         print(f"From {addr}\nReceived {data}")
 
-    def connection_made(self, transport):
-        self.transport = transport
 
-    def connection_lost(self, exc):
-        if exc is None:
-            print("Connection closed or aborted by me.")
-
-
-class RedisPublisherSensorProtocol:
+class RedisPublisherSensorProtocol(BaseSensorProtocol):
     """
     Publish sensor data into Redis
     """
 
-    redis = None
-    on_cleanup = None
+    def __init__(self, redis_client, on_cleanup=None):
+        """
+        redis_client:   An aioredis pool
+        """
+        self.redis = redis_client
+        super().__init__(on_cleanup)
 
     def datagram_received(self, data, addr):
+        now = datetime.now().strftime("%H:%M:%S,%f")
         self.redis.publish_json(
-            settings.REDIS_SENSOR_CHANNEL, dict(data=data.decode("UTF-8"), addr=addr)
+            settings.REDIS_SENSOR_CHANNEL,
+            dict(data=data.decode("UTF-8"), addr=addr, date=now),
         )
 
-    def connection_made(self, transport):
-        self.transport = transport
 
-    def connection_lost(self, exc):
-        if exc is None:
-            print("Connection closed or aborted by me.")
-
-
-class RESTSensorServerProtocol:
+class RESTSensorServerProtocol(BaseSensorProtocol):
     """
     POST sensor data to a REST API
     """
 
     endpoint = settings.API_URL
-
-    def connection_made(self, transport):
-        self.transport = transport
 
     async def datagram_received(self, data, addr):
         hardware_id, temperature, moisture = unpack("<20shh", data)
@@ -60,11 +74,5 @@ class RESTSensorServerProtocol:
         }
         print(f"Received {data} from {addr} with hardware_id={hardware_id}")
 
-        import httpx
-
         async with httpx.AsyncClient() as client:
             await client.post(self.endpoint, data, json=True)
-
-    def connection_lost(self, exc):
-        if exc is None:
-            print("Connection closed or aborted by me.")
