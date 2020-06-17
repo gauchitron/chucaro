@@ -1,20 +1,6 @@
 from struct import unpack
 from udpserver import settings
 
-import aioredis
-import asyncio
-
-
-async def setup_redis():
-    loop = asyncio.get_running_loop()
-    pool = await aioredis.create_redis_pool(settings.REDIS_URL, loop=loop)
-
-    async def close_redis():
-        pool.close()
-        await pool.wait_closed()
-
-    return (pool, close_redis)
-
 
 class DummySensorProtocol:
     """
@@ -38,14 +24,11 @@ class RedisPublisherSensorProtocol:
     """
     Publish sensor data into Redis
     """
+    redis = None
+    on_cleanup = None
 
-    # TODO: call `close_redis`
-    async def clean_up(self):
-        pass
-
-    async def datagram_received(self, data, addr):
-        redis, _ = await setup_redis()
-        redis.publish_json(settings.REDIS_SENSOR_CHANNEL, dict(data=data, addr=addr))
+    def datagram_received(self, data, addr):
+        self.redis.publish_json(settings.REDIS_SENSOR_CHANNEL, dict(data=data.decode("UTF-8"), addr=addr))
 
     def connection_made(self, transport):
         self.transport = transport

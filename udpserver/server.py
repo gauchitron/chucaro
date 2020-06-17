@@ -1,8 +1,19 @@
 from udpserver import protocol, settings
+import aioredis
 import asyncio
 
 
-def get_protocol_instance():
+async def get_redis_client():
+    pool = await aioredis.create_redis_pool(settings.REDIS_URL)
+
+    async def close_redis():
+        pool.close()
+        await pool.wait_closed()
+
+    return (pool, close_redis)
+
+
+async def get_protocol_instance():
     """
     Returns a protocol instance.
     """
@@ -11,6 +22,13 @@ def get_protocol_instance():
         raise ValueError(
             f"Defined protocol in settings {settings.PROTOCOL} was not found."
         )
+
+    if settings.PROTOCOL == "RedisPublisherSensorProtocol":
+        redis, close_redis = await get_redis_client()
+        protocol_instance = protocol_class()
+        protocol_instance.redis = redis
+        protocol_instance.on_cleanup = close_redis
+        return protocol_instance
 
     return protocol_class()
 
@@ -23,13 +41,15 @@ async def get_sensors_datagram_endpoint(host, port):
     When successful, the coroutine returns a (transport, protocol) pair.
     """
     loop = asyncio.get_event_loop()
+    protocol_instance = await get_protocol_instance()
+
     return await loop.create_datagram_endpoint(
-        lambda: get_protocol_instance(), local_addr=(host, port)
+        lambda: protocol_instance, local_addr=(host, port)
     )
 
 
 async def protocol_shutdown(protocol):
-    return await protocol.clean_up()
+    return await protocol.on_cleanup()
 
 
 def main():
