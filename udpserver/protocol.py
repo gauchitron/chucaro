@@ -46,7 +46,7 @@ class RedisPublisherSensorProtocol(BaseSensorProtocol):
         redis_client:   An aioredis pool
         """
         self.redis = redis_client
-        on_cleanup = [self.close_redis()]
+        on_cleanup = [self.close_redis()]  # A list of coroutines
         super().__init__(on_cleanup)
 
     async def close_redis(self):
