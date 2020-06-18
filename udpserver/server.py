@@ -15,6 +15,7 @@ async def get_protocol_instance(name=settings.PROTOCOL):
 
     if protocol_class is protocol.RedisPublisherSensorProtocol:
         import aioredis
+
         redis = await aioredis.create_redis_pool(settings.REDIS_URL)
         protocol_instance = protocol_class(redis_client=redis)
 

@@ -65,6 +65,7 @@ class RESTApiSensorProtocol(BaseSensorProtocol):
     """
     POST sensor data to a REST API
     """
+
     def __init__(self, endpoint):
         """
         endpoint:   API endpoint to POST data.
@@ -82,5 +83,6 @@ class RESTApiSensorProtocol(BaseSensorProtocol):
         print(f"Received {data} from {addr} with hardware_id={hardware_id}")
 
         import httpx
+
         async with httpx.AsyncClient() as client:
             await client.post(self.endpoint, data, json=True)
