@@ -1,5 +1,4 @@
 from udpserver import protocol, settings
-import aioredis
 import asyncio
 
 
@@ -7,16 +6,22 @@ async def get_protocol_instance(name=settings.PROTOCOL):
     """
     Protocol Factory. Returns a protocol instance.
     """
+
     protocol_class = getattr(protocol, name, None)
     if protocol_class is None:
         raise ValueError(f"Protocol {name} not found.")
 
+    protocol_instance = None
+
     if protocol_class is protocol.RedisPublisherSensorProtocol:
+        import aioredis
         redis = await aioredis.create_redis_pool(settings.REDIS_URL)
         protocol_instance = protocol_class(redis_client=redis)
-        return protocol_instance
 
-    return protocol_class()
+    if protocol_class is protocol.RESTApiSensorProtocol:
+        protocol_instance = protocol_class(endpoint=settings.API_URL)
+
+    return protocol_instance or protocol_class()
 
 
 async def get_sensors_datagram_endpoint(host, port):

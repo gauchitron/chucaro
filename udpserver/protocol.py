@@ -2,8 +2,6 @@ from struct import unpack
 from datetime import datetime
 from udpserver import settings
 
-import httpx
-
 
 class BaseSensorProtocol:
     """
@@ -63,12 +61,16 @@ class RedisPublisherSensorProtocol(BaseSensorProtocol):
         )
 
 
-class RESTSensorServerProtocol(BaseSensorProtocol):
+class RESTApiSensorProtocol(BaseSensorProtocol):
     """
     POST sensor data to a REST API
     """
-
-    endpoint = settings.API_URL
+    def __init__(self, endpoint):
+        """
+        endpoint:   API endpoint to POST data.
+        """
+        self.endpoint = endpoint
+        super().__init__()
 
     async def datagram_received(self, data, addr):
         hardware_id, temperature, moisture = unpack("<20shh", data)
@@ -79,5 +81,6 @@ class RESTSensorServerProtocol(BaseSensorProtocol):
         }
         print(f"Received {data} from {addr} with hardware_id={hardware_id}")
 
+        import httpx
         async with httpx.AsyncClient() as client:
             await client.post(self.endpoint, data, json=True)

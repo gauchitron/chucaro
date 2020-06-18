@@ -38,7 +38,7 @@ Available `SensorProtocols` are:
 
 - `DummySensorProtocol`
 - `RedisPublisherSensorProtocol`
-- `RESTSensorServerProtocol`
+- `RESTApiSensorProtocol`
 
 To listen on all interfaces using the `RedisPublisherSensorProtocol` excecute:
 ```bash
