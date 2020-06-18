@@ -2,14 +2,13 @@
 
 This UDP server receives the information sent by our sensors and write them in a DB.
 
-# Install and run
+# Install
 
 1- Using `pyenv`, create a new virtualenv like:
 `pyenv virtualenv 3.9-dev lanza`
 
 2- Install requirements:
 `pip3 install -r requirements.txt`
-
 
 # Code / Contribute
 
@@ -32,29 +31,17 @@ This UDP server receives the information sent by our sensors and write them in a
 
 # Run
 
-Run the server with:
-`./run server`
+Run the server using a `DummySensorProtocol` with:
+`./start`
 
-Test the server running a test client with:
-`./run client`
+Available `SensorProtocols` are:
 
+- `DummySensorProtocol`
+- `RedisPublisherSensorProtocol`
+- `RESTSensorServerProtocol`
 
+To listen on all interfaces using the `RedisPublisherSensorProtocol` excecute:
+```bash
+LANZA_HOST=0.0.0.0 LANZA_PROTOCOL="RedisPublisherSensorProtocol" ./start
+```
 
-# Packet structure
-We will use struct https://docs.python.org/3/library/struct.html#struct-alignment
-
-### Sensors
-
-https://cdn-shop.adafruit.com/datasheets/1899_HTU21D.pdf
-
-### Humidity and Temperature
-
-Field       Type            Storage size    Format
---------------------------------------------------
-Humidity    Unsigned char   (1 byte)        B
-Temperature Signed char     (1 byte)        b
-Hardware ID -               -               -
-
-
-# Notes
-What happen if connectivity is lost by 6 hours, save in buffer and change mode to deep sleeps?
