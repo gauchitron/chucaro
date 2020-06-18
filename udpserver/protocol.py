@@ -12,7 +12,7 @@ class BaseSensorProtocol:
 
     def __init__(self, on_cleanup=None):
         """
-        on_cleanup:     A list of coroutines to excecute when closing transport.
+        on_cleanup:     A list of `coroutines` to be excecuted on transport close.
         """
         self.on_cleanup = on_cleanup or []
 
@@ -43,12 +43,17 @@ class RedisPublisherSensorProtocol(BaseSensorProtocol):
     Publish sensor data into Redis
     """
 
-    def __init__(self, redis_client, on_cleanup=None):
+    def __init__(self, redis_client):
         """
         redis_client:   An aioredis pool
         """
         self.redis = redis_client
+        on_cleanup = [self.close_redis()]
         super().__init__(on_cleanup)
+
+    async def close_redis(self):
+        self.redis.close()
+        await self.redis.wait_closed()
 
     def datagram_received(self, data, addr):
         now = datetime.now().strftime("%H:%M:%S,%f")

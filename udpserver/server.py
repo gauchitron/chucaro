@@ -3,16 +3,6 @@ import aioredis
 import asyncio
 
 
-async def get_redis_client():
-    pool = await aioredis.create_redis_pool(settings.REDIS_URL)
-
-    async def close_redis():
-        pool.close()
-        await pool.wait_closed()
-
-    return pool, close_redis
-
-
 async def get_protocol_instance(name=settings.PROTOCOL):
     """
     Protocol Factory. Returns a protocol instance.
@@ -22,8 +12,8 @@ async def get_protocol_instance(name=settings.PROTOCOL):
         raise ValueError(f"Protocol {name} not found.")
 
     if protocol_class is protocol.RedisPublisherSensorProtocol:
-        redis, close_redis = await get_redis_client()
-        protocol_instance = protocol_class(redis_client=redis, on_cleanup=[close_redis])
+        redis = await aioredis.create_redis_pool(settings.REDIS_URL)
+        protocol_instance = protocol_class(redis_client=redis)
         return protocol_instance
 
     return protocol_class()
@@ -48,9 +38,6 @@ async def exec_transport_protocol_cleanup(transport):
     """
     Execute a list of awaitables, if defined, in `transport._protocol.on_cleanup`.
     """
-    import pdb
-
-    pdb.set_trace()
     return await asyncio.gather(*transport._protocol.on_cleanup)
 
 
