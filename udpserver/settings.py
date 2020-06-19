@@ -11,4 +11,6 @@ API_URL = os.getenv("API_URL")
 
 # RedisPublisherSensorProtocol settings
 REDIS_URL = os.getenv("PROTOCOL_REDIS_PUBLISHER_URL", f"redis://localhost/1")
-REDIS_SENSOR_CHANNEL = os.getenv("PROTOCOL_REDIS_PUBLISHER_CHANNEL_NAME", "gauchitron-dev")
+REDIS_SENSOR_CHANNEL = os.getenv(
+    "PROTOCOL_REDIS_PUBLISHER_CHANNEL_NAME", "gauchitron-dev"
+)
