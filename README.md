@@ -42,6 +42,6 @@ Available `SensorProtocols` are:
 
 To listen on all interfaces using the `RedisPublisherSensorProtocol` excecute:
 ```bash
-LANZA_HOST=0.0.0.0 LANZA_PROTOCOL="RedisPublisherSensorProtocol" ./start
+UDPSERVER_HOST=0.0.0.0 UDPSERVER_PROTOCOL="RedisPublisherSensorProtocol" ./start
 ```
 

@@ -14,8 +14,20 @@ class BaseSensorProtocol:
         """
         self.on_cleanup = on_cleanup or []
 
-    def datagram_received(self, data, addr):
+    def handle_sensor_data(self, data, addr):
+        """
+        Do whatever you want with sensor data.
+        """
         raise NotImplementedError
+
+    def parse_data(self, data):
+        if settings.UNPACK_DATA:
+            data = unpack("<20shh", data)
+        return data
+
+    def datagram_received(self, data, addr):
+        data = self.parse_data(data)
+        self.handle_sensor_data(data, addr)
 
     def connection_made(self, transport):
         self.transport = transport
@@ -32,7 +44,7 @@ class DummySensorProtocol(BaseSensorProtocol):
     It'll only print received data.
     """
 
-    def datagram_received(self, data, addr):
+    def handle_sensor_data(self, data, addr):
         print(f"From {addr}\nReceived {data}")
 
 
@@ -53,7 +65,7 @@ class RedisPublisherSensorProtocol(BaseSensorProtocol):
         self.redis.close()
         await self.redis.wait_closed()
 
-    def datagram_received(self, data, addr):
+    def handle_sensor_data(self, data, addr):
         now = datetime.now().strftime("%H:%M:%S,%f")
         self.redis.publish_json(
             settings.REDIS_SENSOR_CHANNEL,
@@ -73,8 +85,8 @@ class RESTApiSensorProtocol(BaseSensorProtocol):
         self.endpoint = endpoint
         super().__init__()
 
-    async def datagram_received(self, data, addr):
-        hardware_id, temperature, moisture = unpack("<20shh", data)
+    async def handle_sensor_data(self, data, addr):
+        hardware_id, temperature, moisture = data
         data = {
             "hardware_id": hardware_id,
             "temperature": temperature,
@@ -86,3 +98,16 @@ class RESTApiSensorProtocol(BaseSensorProtocol):
 
         async with httpx.AsyncClient() as client:
             await client.post(self.endpoint, data, json=True)
+
+
+class InfluxDBSensorProtocol(BaseSensorProtocol):
+    """
+    Write data to InfluxDB 2.0
+    """
+
+    def __init__(self, influxdb):
+        self.influxdb = influxdb
+        super().__init__()
+
+    def handle_sensor_data(self, data, addr):
+        pass

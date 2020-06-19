@@ -2,7 +2,7 @@ from udpserver import protocol, settings
 import asyncio
 
 
-async def get_protocol_instance(name=settings.PROTOCOL):
+async def get_protocol_instance(name: str=settings.PROTOCOL):
     """
     Protocol Factory. Returns a protocol instance.
     """
@@ -14,18 +14,20 @@ async def get_protocol_instance(name=settings.PROTOCOL):
     protocol_instance = None
 
     if protocol_class is protocol.RedisPublisherSensorProtocol:
-        import aioredis
-
-        redis = await aioredis.create_redis_pool(settings.REDIS_URL)
-        protocol_instance = protocol_class(redis_client=redis)
+        from udpserver.storage.redis import get_pool_of_connections
+        protocol_instance = protocol_class(redis_client=get_pool_of_connections(settings.REDIS_URL))
 
     if protocol_class is protocol.RESTApiSensorProtocol:
+        protocol_instance = protocol_class(endpoint=settings.API_URL)
+
+    if protocol_class is protocol.InfluxDBSensorProtocol:
+        import influxdb_client
         protocol_instance = protocol_class(endpoint=settings.API_URL)
 
     return protocol_instance or protocol_class()
 
 
-async def get_sensors_datagram_endpoint(host, port):
+async def get_sensors_datagram_endpoint(host:str, port:int):
     """
     A coroutine which creates a datagram endpoint using the BolsonServerProtocol.
 
