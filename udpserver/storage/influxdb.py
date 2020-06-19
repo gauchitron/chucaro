@@ -1,4 +1,5 @@
 from influxdb_client import InfluxDBClient
+from influxdb_client.client.write_api import ASYNCHRONOUS
 
 
 def get_influxdb_client():
@@ -11,4 +12,6 @@ def get_influxdb_client():
         INFLUXDB_V2_TOKEN - the token to use for the authorization
         INFLUXDB_V2_TIMEOUT - socket timeout in ms (default value is 10000)
     """
-    return InfluxDBClient.from_env_properties()
+    client = InfluxDBClient.from_env_properties()
+    write_api = client.write_api(write_options=ASYNCHRONOUS)
+    return write_api
