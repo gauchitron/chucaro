@@ -1,7 +1,7 @@
 import aioredis
 
 
-async def get_pool_of_connections(redis_url:str):
+async def get_pool_of_connections(redis_url: str):
     """
     Returns a pool of connections.
     """
