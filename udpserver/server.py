@@ -16,17 +16,16 @@ async def get_protocol_instance(name: str = settings.PROTOCOL):
     if protocol_class is protocol.RedisPublisherSensorProtocol:
         from udpserver.storage.redis import get_pool_of_connections
 
-        protocol_instance = protocol_class(
-            redis_client=get_pool_of_connections(settings.REDIS_URL)
-        )
+        pool = get_pool_of_connections(settings.REDIS_URL)
+        protocol_instance = protocol_class(redis_client=pool)
 
     if protocol_class is protocol.RESTApiSensorProtocol:
         protocol_instance = protocol_class(endpoint=settings.API_URL)
 
     if protocol_class is protocol.InfluxDBSensorProtocol:
-        import influxdb_client
+        from udpserver.storage.influxdb import get_influxdb_client
 
-        protocol_instance = protocol_class(endpoint=settings.API_URL)
+        protocol_instance = protocol_class(influxdb_client=get_influxdb_client())
 
     return protocol_instance or protocol_class()
 
