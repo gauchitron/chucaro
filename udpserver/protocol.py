@@ -86,14 +86,6 @@ class RESTApiSensorProtocol(BaseSensorProtocol):
         super().__init__()
 
     async def handle_sensor_data(self, data, addr):
-        hardware_id, temperature, moisture = data
-        data = {
-            "hardware_id": hardware_id,
-            "temperature": temperature,
-            "moisture": moisture,
-        }
-        print(f"Received {data} from {addr} with hardware_id={hardware_id}")
-
         import httpx
 
         async with httpx.AsyncClient() as client:
@@ -105,9 +97,9 @@ class InfluxDBSensorProtocol(BaseSensorProtocol):
     Write data to InfluxDB 2.0
     """
 
-    def __init__(self, influxdb):
-        self.influxdb = influxdb
+    def __init__(self, influxdb_client):
+        self.influxdb = influxdb_client
         super().__init__()
 
     def handle_sensor_data(self, data, addr):
-        pass
+        self.influxdb.write(bucket="test", record=data)
