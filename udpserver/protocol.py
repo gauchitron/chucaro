@@ -122,7 +122,6 @@ class RESTApiSensorProtocol(BaseSensorProtocol):
         headers = {"Authorization": f"Token {settings.API_TOKEN}"}
         try:
             data = self.parse_data(data)
-            print(data)
             response = httpx.post(self.endpoint, json=data, headers=headers)
             print(response.json())
         except Exception as exc:
