@@ -1,27 +1,16 @@
 version: "3"
 
 services:
-  influxdb:
-    image: quay.io/influxdb/influxdb:2.0.0-beta
-    restart: unless-stopped
-    ports:
-      - "9999:9999"
-
   udp-server:
     environment:
       - UDPSERVER_HOST
       - UDPSERVER_PORT
       - UDPSERVER_PROTOCOL
-      - INFLUXDB_V2_URL
-      - INFLUXDB_V2_ORG
-      - INFLUXDB_V2_TOKEN
-      - INFLUXDB_V2_TIMEOUT
-      - INFLUXDB_V2_TAG_HOSTNAME
+      - DJANGO_API_TOKEN
+      - DJANGO_API_LOGS_SERVICE
     build:
       context: .
       dockerfile: ./compose/local/udp-server/Dockerfile
     command: /start
     ports:
       - "5555:5555/udp"
-    depends_on:
-      - influxdb

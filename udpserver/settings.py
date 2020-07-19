@@ -7,7 +7,8 @@ UNPACK_DATA = os.getenv("UDPSERVER_UNPACK_DATA", False)  # use `struct.unpack?`
 PROTOCOL = os.getenv("UDPSERVER_PROTOCOL", "DummySensorProtocol")
 
 # RESTApiSensorProtocol settings
-API_URL = os.getenv("API_URL")
+API_URL = os.getenv("DJANGO_API_LOGS_SERVICE")
+API_TOKEN = os.getenv("DJANGO_API_TOKEN")
 
 # RedisPublisherSensorProtocol settings
 REDIS_URL = os.getenv("PROTOCOL_REDIS_PUBLISHER_URL", f"redis://localhost/1")
