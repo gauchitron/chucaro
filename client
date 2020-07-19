@@ -4,4 +4,4 @@
 export PYTHONPATH=`pwd`
 export LANZA_HOST=0.0.0.0
 export LANZA_PORT=5555
-python3 ./udpserver/client.py client "00000000000000000001" 20 10
+python3 ./udpserver/tests/udp_client.py client "00000000000000000001" 20 10

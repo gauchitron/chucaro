@@ -85,11 +85,48 @@ class RESTApiSensorProtocol(BaseSensorProtocol):
         self.endpoint = endpoint
         super().__init__()
 
-    async def handle_sensor_data(self, data, addr):
-        import httpx
+    def parse_data(self, data):
+        """
+        Data must have this format:
+        # userid:product:chipid:temperature:humidity
 
-        async with httpx.AsyncClient() as client:
-            await client.post(self.endpoint, data, json=True)
+        # TODO: Check if product is `silobags` or others. Other products
+        # will send different information
+        # https://github.com/gauchitron/udp-server/issues/1
+        """
+        if isinstance(data, bytes):
+            data = data.decode("utf-8")
+
+        # TODO: BUG here. This method is called twice by `handle_sensor_data`. First time
+        # with b"2:silobags:test-chip-123:20.2:64.2" (which is perfect) but a SECOND time
+        # (totally unexpected) is called as a dict, the one that gets defined below
+        if isinstance(data, dict):
+            return data
+
+        userid, product, chip_id, temperature, humidity = data.split(":")
+        data = {
+            "product": product,
+            "user": userid,
+            "data": {
+                "chip_id": chip_id,
+                "humidity": humidity,
+                "temperature": temperature,
+            },
+        }
+        return data
+
+    def handle_sensor_data(self, data, addr):
+        import httpx
+        import json
+
+        headers = {"Authorization": f"Token {settings.API_TOKEN}"}
+        try:
+            data = self.parse_data(data)
+            print(data)
+            response = httpx.post(self.endpoint, json=data, headers=headers)
+            print(response.json())
+        except Exception as exc:
+            print(exc)
 
 
 class InfluxDBSensorProtocol(BaseSensorProtocol):
